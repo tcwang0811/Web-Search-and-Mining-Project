@@ -3,8 +3,7 @@ from Parser import Parser
 import util
 # tf-idf
 import math
-import TF_IDF
-from textblob import TextBlob as tb
+# from textblob import TextBlob as tb # useless ?
 # Calculate Similarity
 import Similarity
 
@@ -89,16 +88,10 @@ class VectorSpaceModel:
 
     def makeIDFVector(self, documentList):
 
-        VectorDF = self.vectorKeywordIndex
+        outputVector = [0] * len(self.vectorKeywordIndex)
 
-        outputVector = [0] * len(VectorDF)
-
-        keyVector = list(VectorDF.keys())
+        keyVector = list(self.vectorKeywordIndex.keys())
         docNumber = len(documentList)  # should be 2048
-
-        # Initialize
-        for key in keyVector:
-            VectorDF[key] = 0
 
         for i in range(docNumber):
             docTemp = self.parser.tokenise(documentList[i])
@@ -106,10 +99,10 @@ class VectorSpaceModel:
             uniqueDocTemp = util.removeDuplicates(docTemp)
 
             for key in uniqueDocTemp:
-                VectorDF[key] += 1 # DF
+                outputVector[self.vectorKeywordIndex[key]] += 1 # DF
 
         for key in keyVector:
-            outputVector[self.vectorKeywordIndex[key]] = math.log(docNumber/VectorDF[key]) # IDF
+            outputVector[self.vectorKeywordIndex[key]] = math.log(docNumber/outputVector[self.vectorKeywordIndex[key]]) # IDF
 
         return outputVector
 
@@ -117,27 +110,34 @@ class VectorSpaceModel:
 
         outputVector = [0] * len(TFVector)
 
-        for i in range(TFVector):
+        for i in range(len(TFVector)):
             outputVector[i] = self.IDFVector[i]*TFVector[i]
 
         return outputVector
 
-    def buildQueryVector(self, termList):
-        """ convert query string into a term vector """
+    def buildSimpleQueryVector(self, termList):
+        """ convert query string into a TF vector """
         query = self.makeSimpleVector(" ".join(termList))
         return query
 
-    def related(self, documentId):
-        """ find documents that are related to the document indexed by passed Id within the document Vectors"""
-        ratings = [util.cosine(self.documentVectors[documentId], documentVector) for documentVector in
-                   self.documentVectors]
+    def buildTFIDFQueryVector(self, termList):
+        """ convert query string into a TF-IDF vector """
+        TFQuery = self.buildSimpleQueryVector(termList)
+        query = self.makeTFIDFVector(TFQuery)
+        return query
+
+    def searchTFWithCosine(self, searchList):
+        """ search for documents that match based on a list of terms """
+        queryVector = self.buildSimpleQueryVector(searchList)
+
+        ratings = [util.cosine(queryVector, documentVector) for documentVector in self.documentVectors]
         # ratings.sort(reverse=True)
         return ratings
 
-    def search(self, searchList):
+    def searchTFIDFWithCosine(self, searchList):
         """ search for documents that match based on a list of terms """
-        queryVector = self.buildQueryVector(searchList)
+        queryVector = self.buildTFIDFQueryVector(searchList)
 
-        ratings = [util.cosine(queryVector, documentVector) for documentVector in self.documentVectors]
+        ratings = [util.cosine(queryVector, documentVector) for documentVector in self.TFIDFVector]
         # ratings.sort(reverse=True)
         return ratings
