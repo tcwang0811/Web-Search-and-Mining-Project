@@ -1,20 +1,6 @@
-# VectorSpace
 from Parser import Parser
 import util
-# tf-idf
 import math
-
-# ------------------------------------------------- #
-
-# 1. calculate the tf or tf-idf
-# input: collection of documents
-# output: the vector of each document
-
-# 2. return the similarity
-# input: a query
-# output: the similarity of each document
-
-# ------------------------------------------------- #
 
 class VectorSpaceModel:
     """ A algebraic model for representing text documents as vectors of identifiers.
