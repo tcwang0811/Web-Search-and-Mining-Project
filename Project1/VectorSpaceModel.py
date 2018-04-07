@@ -3,9 +3,6 @@ from Parser import Parser
 import util
 # tf-idf
 import math
-# from textblob import TextBlob as tb # useless ?
-# Calculate Similarity
-import Similarity
 
 # ------------------------------------------------- #
 
@@ -139,5 +136,21 @@ class VectorSpaceModel:
         queryVector = self.buildTFIDFQueryVector(searchList)
 
         ratings = [util.cosine(queryVector, documentVector) for documentVector in self.TFIDFVector]
+        # ratings.sort(reverse=True)
+        return ratings
+
+    def searchTFWithEuclideanDist(self, searchList):
+        """ search for documents that match based on a list of terms """
+        queryVector = self.buildSimpleQueryVector(searchList)
+
+        ratings = [util.EuclideanDist(queryVector, documentVector) for documentVector in self.documentVectors]
+        # ratings.sort(reverse=True)
+        return ratings
+
+    def searchTFIDFWithEuclideanDist(self, searchList):
+        """ search for documents that match based on a list of terms """
+        queryVector = self.buildTFIDFQueryVector(searchList)
+
+        ratings = [util.EuclideanDist(queryVector, documentVector) for documentVector in self.TFIDFVector]
         # ratings.sort(reverse=True)
         return ratings

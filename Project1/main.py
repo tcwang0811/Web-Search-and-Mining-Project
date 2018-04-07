@@ -3,14 +3,6 @@ from VectorSpaceModel import VectorSpaceModel
 
 
 
-
-
-
-
-
-
-
-
 def main():
 
     # open and store document
@@ -29,8 +21,9 @@ def main():
     query = "drill wood sharp"
 
     VS = VectorSpaceModel(documents)
-    print(VS.searchTFWithCosine(query))
-    # print(VS.searchTFIDFWithCosine(query))
+
+
+
 
 
 if __name__ == "__main__":
