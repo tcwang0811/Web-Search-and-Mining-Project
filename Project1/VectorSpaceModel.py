@@ -1,7 +1,8 @@
 # VectorSpace
 from Parser import Parser
-import util # to be deleted
+import util
 # tf-idf
+import math
 import TF_IDF
 from textblob import TextBlob as tb
 # Calculate Similarity
@@ -31,6 +32,9 @@ class VectorSpaceModel:
     # Mapping of vector index to keyword
     vectorKeywordIndex = []
 
+    # IDF
+    IDFVector = []
+
     # Tidies terms
     parser = None
 
@@ -43,7 +47,8 @@ class VectorSpaceModel:
     def build(self, documents):
         """ Create the vector space for the passed document strings """
         self.vectorKeywordIndex = self.getVectorKeywordIndex(documents)
-        self.documentVectors = [self.makeVector(document) for document in documents]
+        self.documentVectors = [self.makeSimpleVector(document) for document in documents]
+        self.IDFVector = self.makeIDFVector(documents)
 
         # print self.vectorKeywordIndex
         # print self.documentVectors
@@ -67,7 +72,7 @@ class VectorSpaceModel:
             offset += 1
         return vectorIndex  # (keyword:position)
 
-    def makeVector(self, wordString):
+    def makeSimpleVector(self, wordString):
         """ @pre: unique(vectorIndex) """
 
         # Initialise vector with 0's
@@ -78,9 +83,48 @@ class VectorSpaceModel:
             vector[self.vectorKeywordIndex[word]] += 1  # Use simple Term Count Model
         return vector
 
+    def makeIDFVector(self, documentList):
+
+        outputVector = self.vectorKeywordIndex
+
+        keyVector = list(outputVector.keys())
+        docNumber = len(documentList)  # should be 2048
+
+        # Initialize
+        for key in keyVector:
+            outputVector[key] = 0
+
+        for i in range(docNumber):
+            docTemp = self.parser.tokenise(documentList[i])
+            docTemp = self.parser.removeStopWords(docTemp)
+            uniqueDocTemp = util.removeDuplicates(docTemp)
+
+            for key in uniqueDocTemp:
+                outputVector[key] += 1 # DF
+
+        for key in keyVector:
+            outputVector[key] = math.log(docNumber/outputVector[key]) # IDF
+
+        return outputVector
+
+    def makeTFIDFVector(self, TFVector):
+
+        outputVector = [0] * len(TFVector)
+
+
+
+
+
+
+
+
+
+
+
+
     def buildQueryVector(self, termList):
         """ convert query string into a term vector """
-        query = self.makeVector(" ".join(termList))
+        query = self.makeSimpleVector(" ".join(termList))
         return query
 
     def related(self, documentId):
