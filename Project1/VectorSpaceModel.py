@@ -35,6 +35,9 @@ class VectorSpaceModel:
     # IDF
     IDFVector = []
 
+    # TF-TDF
+    TFIDFVector = []
+
     # Tidies terms
     parser = None
 
@@ -49,6 +52,7 @@ class VectorSpaceModel:
         self.vectorKeywordIndex = self.getVectorKeywordIndex(documents)
         self.documentVectors = [self.makeSimpleVector(document) for document in documents]
         self.IDFVector = self.makeIDFVector(documents)
+        self.TFIDFVector = [self.makeTFIDFVector(TFV) for TFV in self.documentVectors]
 
         # print self.vectorKeywordIndex
         # print self.documentVectors
@@ -85,14 +89,16 @@ class VectorSpaceModel:
 
     def makeIDFVector(self, documentList):
 
-        outputVector = self.vectorKeywordIndex
+        VectorDF = self.vectorKeywordIndex
 
-        keyVector = list(outputVector.keys())
+        outputVector = [0] * len(VectorDF)
+
+        keyVector = list(VectorDF.keys())
         docNumber = len(documentList)  # should be 2048
 
         # Initialize
         for key in keyVector:
-            outputVector[key] = 0
+            VectorDF[key] = 0
 
         for i in range(docNumber):
             docTemp = self.parser.tokenise(documentList[i])
@@ -100,10 +106,10 @@ class VectorSpaceModel:
             uniqueDocTemp = util.removeDuplicates(docTemp)
 
             for key in uniqueDocTemp:
-                outputVector[key] += 1 # DF
+                VectorDF[key] += 1 # DF
 
         for key in keyVector:
-            outputVector[key] = math.log(docNumber/outputVector[key]) # IDF
+            outputVector[self.vectorKeywordIndex[key]] = math.log(docNumber/VectorDF[key]) # IDF
 
         return outputVector
 
@@ -111,16 +117,10 @@ class VectorSpaceModel:
 
         outputVector = [0] * len(TFVector)
 
+        for i in range(TFVector):
+            outputVector[i] = self.IDFVector[i]*TFVector[i]
 
-
-
-
-
-
-
-
-
-
+        return outputVector
 
     def buildQueryVector(self, termList):
         """ convert query string into a term vector """
