@@ -13,6 +13,13 @@ def removeDuplicates(list):
     """ remove duplicates from a list """
     return set((item for item in list))
 
+def normalization(list):
+    normList = norm(list)
+
+    if normList == 0:
+        return list
+    else:
+        return list/normList
 
 def cosine(vector1, vector2):
     """ related documents j and q are in the concept space by comparing the vectors :
