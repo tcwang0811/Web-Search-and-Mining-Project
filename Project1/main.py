@@ -1,9 +1,18 @@
 import os
 from VectorSpaceModel import VectorSpaceModel
 
-def PrintFormat(SortedList, n):
+def SandP(VSList, NoList, n, isReverse):
+    print("DocID  ", "Score")
+
+    output = []
+
+    for i in range(len(NoList)):
+        output.append([NoList[i][:6], round(VSList[i], 6)])
+
+    output.sort(key = lambda x: x[1],reverse = isReverse)
+
     for i in range(n):
-        print(SortedList[i][0],SortedList[i][1])
+        print(output[i][0],output[i][1])
 
 
 def main():
@@ -21,32 +30,38 @@ def main():
             documentsNo.append(file)
             thisFile.close()
 
-    query = "drill wood sharp"
+    query = ["drill wood sharp"]
 
     VS = VectorSpaceModel(documents)
-
 
     n_Print = 5
 
     ## TF + Cosine
-    # print("TF + Cosine:")
-    # print("DocID  ", "Score")
-    #
-    # TFWithCosine = VS.searchTFWithCosine(query)
-    #
-    # output = []
-    #
-    # for i in range(len(documentsNo)):
-    #     output.append([documentsNo[i][:6],round(TFWithCosine[i],6)])
-    #
-    # output.sort(key=lambda x: x[1],reverse=True)
-    #
-    # PrintFormat(output, n_Print)
+    print("TF + Cosine:")
 
-    # TFWithEuclideanDist = VS.searchTFWithEuclideanDist(query)
-    # TFIDFWithCosine = VS.searchTFIDFWithCosine(query)
-    # TFIDFWithEuclideanDist = VS.searchTFIDFWithEuclideanDist(query)
+    SandP(VS.searchTFWithCosine(query), documentsNo, n_Print,True)
 
+    print("\n")
+    ## TF + Euclidean Distance
+    print("TF + Euclidean Distance:")
+
+    SandP(VS.searchTFWithEuclideanDist(query), documentsNo, n_Print, False)
+
+    print("\n")
+    ## TF-IDF + Cosine
+    print("TF-IDF + Cosine:")
+
+    SandP(VS.searchTFIDFWithCosine(query), documentsNo, n_Print, True)
+
+    print("\n")
+    ## TF-IDF + Euclidean Distance
+    print("TF-IDF + Euclidean Distance:")
+
+    SandP(VS.searchTFIDFWithEuclideanDist(query), documentsNo, n_Print, False)
+
+    print("\n")
+
+    #######################################
 
 if __name__ == "__main__":
     main()
