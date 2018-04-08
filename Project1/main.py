@@ -20,7 +20,7 @@ def SandP(VSList, NoList, n, isReverse):
 def main():
 
     # open and store document
-    path = "D:/PycharmProjects/WSMProject/documents/"
+    path = "documents/"
 
     documents = []
     documentsNo = []
@@ -40,6 +40,7 @@ def main():
 
     #######################################
     ## TF + Cosine ##
+
     # print("TF + Cosine:")
     #
     # SandP(VS.searchTFWithCosine(query), documentsNo, n_Print,True)
@@ -51,7 +52,7 @@ def main():
     # SandP(VS.searchTFWithEuclideanDist(query), documentsNo, n_Print, False)
     #
     # print("\n")
-    # ## TF-IDF + Cosine ##
+    ## TF-IDF + Cosine ##
     print("TF-IDF + Cosine:")
 
     FBVector = SandP(VS.searchTFIDFWithCosine(query), documentsNo, n_Print, True)
@@ -63,7 +64,7 @@ def main():
     # SandP(VS.searchTFIDFWithEuclideanDist(query), documentsNo, n_Print, False)
     #
     # print("\n")
-
+    #
     ## Relevant Feedback ##
     print("TF-IDF + Cosine + Relevant Feedback:")
     FBNo = FBVector[0][0]
