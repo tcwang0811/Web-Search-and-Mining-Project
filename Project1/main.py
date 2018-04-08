@@ -7,12 +7,14 @@ def SandP(VSList, NoList, n, isReverse):
     output = []
 
     for i in range(len(NoList)):
-        output.append([NoList[i][:6], round(VSList[i], 6)])
+        output.append([NoList[i], round(VSList[i], 6)])
 
     output.sort(key = lambda x: x[1],reverse = isReverse)
 
     for i in range(n):
-        print(output[i][0],output[i][1])
+        print(output[i][0][:6],output[i][1])
+
+    return output
 
 
 def main():
@@ -36,30 +38,41 @@ def main():
 
     n_Print = 5
 
-    ## TF + Cosine
-    print("TF + Cosine:")
-
-    SandP(VS.searchTFWithCosine(query), documentsNo, n_Print,True)
-
-    print("\n")
-    ## TF + Euclidean Distance
-    print("TF + Euclidean Distance:")
-
-    SandP(VS.searchTFWithEuclideanDist(query), documentsNo, n_Print, False)
-
-    print("\n")
-    ## TF-IDF + Cosine
+    #######################################
+    ## TF + Cosine ##
+    # print("TF + Cosine:")
+    #
+    # SandP(VS.searchTFWithCosine(query), documentsNo, n_Print,True)
+    #
+    # print("\n")
+    # ## TF + Euclidean Distance ##
+    # print("TF + Euclidean Distance:")
+    #
+    # SandP(VS.searchTFWithEuclideanDist(query), documentsNo, n_Print, False)
+    #
+    # print("\n")
+    # ## TF-IDF + Cosine ##
     print("TF-IDF + Cosine:")
 
-    SandP(VS.searchTFIDFWithCosine(query), documentsNo, n_Print, True)
+    FBVector = SandP(VS.searchTFIDFWithCosine(query), documentsNo, n_Print, True)
 
     print("\n")
-    ## TF-IDF + Euclidean Distance
-    print("TF-IDF + Euclidean Distance:")
+    # ## TF-IDF + Euclidean Distance ##
+    # print("TF-IDF + Euclidean Distance:")
+    #
+    # SandP(VS.searchTFIDFWithEuclideanDist(query), documentsNo, n_Print, False)
+    #
+    # print("\n")
 
-    SandP(VS.searchTFIDFWithEuclideanDist(query), documentsNo, n_Print, False)
+    ## Relevant Feedback ##
+    print("TF-IDF + Cosine + Relevant Feedback:")
+    FBNo = FBVector[0][0]
+    FB = documents[documentsNo.index(FBNo)]
 
-    print("\n")
+    newQuery = [query,[FB]]
+
+    SandP(VS.searchRelevantFeedback(newQuery), documentsNo, n_Print, True)
+
 
     #######################################
 

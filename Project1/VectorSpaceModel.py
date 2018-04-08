@@ -36,9 +36,6 @@ class VectorSpaceModel:
         self.IDFVector = self.makeIDFVector(documents)
         self.TFIDFVector = [self.makeTFIDFVector(TFV) for TFV in self.documentVectors]
 
-        # print self.vectorKeywordIndex
-        # print self.documentVectors
-
     def getVectorKeywordIndex(self, documentList):
         """ create the keyword associated to the position of the elements within the document vectors """
 
@@ -114,7 +111,7 @@ class VectorSpaceModel:
         queryVector = self.buildSimpleQueryVector(searchList)
 
         ratings = [util.cosine(queryVector, documentVector) for documentVector in self.documentVectors]
-        # ratings.sort(reverse=True)
+
         return ratings
 
     def searchTFIDFWithCosine(self, searchList):
@@ -122,7 +119,7 @@ class VectorSpaceModel:
         queryVector = self.buildTFIDFQueryVector(searchList)
 
         ratings = [util.cosine(queryVector, documentVector) for documentVector in self.TFIDFVector]
-        # ratings.sort(reverse=True)
+
         return ratings
 
     def searchTFWithEuclideanDist(self, searchList):
@@ -130,7 +127,7 @@ class VectorSpaceModel:
         queryVector = self.buildSimpleQueryVector(searchList)
 
         ratings = [util.EuclideanDist(queryVector, documentVector) for documentVector in self.documentVectors]
-        # ratings.sort(reverse=True)
+
         return ratings
 
     def searchTFIDFWithEuclideanDist(self, searchList):
@@ -138,5 +135,22 @@ class VectorSpaceModel:
         queryVector = self.buildTFIDFQueryVector(searchList)
 
         ratings = [util.EuclideanDist(queryVector, documentVector) for documentVector in self.TFIDFVector]
-        # ratings.sort(reverse=True)
+
+        return ratings
+
+    def searchRelevantFeedback(self, QueryFeedback):
+        # first element is query, second element is feedback
+
+        query = self.buildSimpleQueryVector(QueryFeedback[0])
+        feedback = self.buildSimpleQueryVector(QueryFeedback[1])
+
+        TFNewQuery = [0]*len(query)
+
+        for i in range(len(query)):
+            TFNewQuery[i] = 1 * query[i] + 0.5 * feedback[i]
+
+        newQuery = self.makeTFIDFVector(TFNewQuery)
+
+        ratings = [util.cosine(newQuery, documentVector) for documentVector in self.TFIDFVector]
+
         return ratings
