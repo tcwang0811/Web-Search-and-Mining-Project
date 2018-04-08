@@ -1,4 +1,5 @@
 import os
+import nltk
 from VectorSpaceModel import VectorSpaceModel
 
 def SandP(VSList, NoList, n, isReverse):
@@ -13,6 +14,20 @@ def SandP(VSList, NoList, n, isReverse):
 
     for i in range(n):
         print(output[i][0][:6],output[i][1])
+
+    return output
+
+def NandV(documentString):
+    text = nltk.word_tokenize(documentString)
+    temp = nltk.pos_tag(text)
+
+    output = ""
+
+    for i in range(len(temp)):
+        if temp[i][1][0] == "N" or temp[i][1][0] == "V":
+            if output != "":
+                output += " "
+            output += temp[i][0]
 
     return output
 
@@ -69,6 +84,8 @@ def main():
     print("TF-IDF + Cosine + Relevant Feedback:")
     FBNo = FBVector[0][0]
     FB = documents[documentsNo.index(FBNo)]
+
+    FB = NandV(FB)
 
     newQuery = [query,[FB]]
 
