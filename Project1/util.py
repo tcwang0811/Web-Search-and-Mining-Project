@@ -2,7 +2,7 @@ import sys
 
 # http://www.scipy.org/
 try:
-    from numpy import dot
+    import numpy as np
     from numpy.linalg import norm
 except:
     print("Error: Requires numpy from http://www.scipy.org/. Have you installed scipy?")
@@ -24,12 +24,10 @@ def normalization(list):
 def cosine(vector1, vector2):
     """ related documents j and q are in the concept space by comparing the vectors :
 		cosine  = ( V1 * V2 ) / ||V1|| x ||V2|| """
-    return float(dot(vector1, vector2) / (norm(vector1) * norm(vector2)))
+    return float(np.dot(vector1, vector2) / (norm(vector1) * norm(vector2)))
 
 def EuclideanDist(document, query):
-    output = [0]*len(document)
+    Doc = np.array(document)
+    Que = np.array(query)
 
-    for i in range(len(document)):
-        output[i] = document[i] - query[i]
-
-    return float(norm(output))
+    return float(norm(Doc-Que))

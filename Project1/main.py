@@ -56,30 +56,30 @@ def main():
     #######################################
     ## TF + Cosine ##
 
-    # print("TF + Cosine:")
-    #
-    # SandP(VS.searchTFWithCosine(query), documentsNo, n_Print,True)
-    #
-    # print("\n")
-    # ## TF + Euclidean Distance ##
-    # print("TF + Euclidean Distance:")
-    #
-    # SandP(VS.searchTFWithEuclideanDist(query), documentsNo, n_Print, False)
-    #
-    # print("\n")
+    print("TF + Cosine:")
+
+    SandP(VS.searchTFWithCosine(query), documentsNo, n_Print,True)
+
+    print("\n")
+    ## TF + Euclidean Distance ##
+    print("TF + Euclidean Distance:")
+
+    SandP(VS.searchTFWithEuclideanDist(query), documentsNo, n_Print, False)
+
+    print("\n")
     ## TF-IDF + Cosine ##
     print("TF-IDF + Cosine:")
 
     FBVector = SandP(VS.searchTFIDFWithCosine(query), documentsNo, n_Print, True)
 
     print("\n")
-    # ## TF-IDF + Euclidean Distance ##
-    # print("TF-IDF + Euclidean Distance:")
-    #
-    # SandP(VS.searchTFIDFWithEuclideanDist(query), documentsNo, n_Print, False)
-    #
-    # print("\n")
-    #
+    ## TF-IDF + Euclidean Distance ##
+    print("TF-IDF + Euclidean Distance:")
+
+    SandP(VS.searchTFIDFWithEuclideanDist(query), documentsNo, n_Print, False)
+
+    print("\n")
+
     ## Relevant Feedback ##
     print("TF-IDF + Cosine + Relevant Feedback:")
     FBNo = FBVector[0][0]
