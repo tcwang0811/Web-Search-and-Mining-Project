@@ -26,8 +26,11 @@ def cosine(vector1, vector2):
 		cosine  = ( V1 * V2 ) / ||V1|| x ||V2|| """
     return float(np.dot(vector1, vector2) / (norm(vector1) * norm(vector2)))
 
-def EuclideanDist(document, query):
-    Doc = np.array(document)
+def EuclideanDist(query, document):
     Que = np.array(query)
+    Que = normalization(Que)
+    Doc = np.array(document)
 
-    return float(norm(Doc-Que))
+    output = norm(Doc-Que)
+
+    return output

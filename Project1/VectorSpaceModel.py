@@ -9,7 +9,7 @@ class VectorSpaceModel:
     """
 
     # Collection of document term vectors
-    documentVectors = []
+    TFVectors = []
 
     # Mapping of vector index to keyword
     vectorKeywordIndex = []
@@ -24,7 +24,7 @@ class VectorSpaceModel:
     parser = None
 
     def __init__(self, documents=[]):
-        self.documentVectors = []
+        self.TFVectors = []
         self.parser = Parser()
         if (len(documents) > 0):
             self.build(documents)
@@ -32,9 +32,9 @@ class VectorSpaceModel:
     def build(self, documents):
         """ Create the vector space for the passed document strings """
         self.vectorKeywordIndex = self.getVectorKeywordIndex(documents)
-        self.documentVectors = [self.makeSimpleVector(document) for document in documents]
+        self.TFVectors = [self.makeTFVector(document) for document in documents]
         self.IDFVector = self.makeIDFVector(documents)
-        self.TFIDFVector = [self.makeTFIDFVector(TFV) for TFV in self.documentVectors]
+        self.TFIDFVectors = [self.makeTFIDFVector(TFV) for TFV in self.TFVectors]
 
     def getVectorKeywordIndex(self, documentList):
         """ create the keyword associated to the position of the elements within the document vectors """
@@ -55,34 +55,37 @@ class VectorSpaceModel:
             offset += 1
         return vectorIndex  # (keyword:position)
 
-    def makeSimpleVector(self, wordString):
+    def makeTFVector(self, wordString):
         """ @pre: unique(vectorIndex) """
 
         # Initialise vector with 0's
         vector = [0] * len(self.vectorKeywordIndex)
+
         wordList = self.parser.tokenise(wordString)
         wordList = self.parser.removeStopWords(wordList)
+
         for word in wordList:
-            vector[self.vectorKeywordIndex[word]] += 1  # Use simple Term Count Model
+            vector[self.vectorKeywordIndex[word]] += 1
+
         return vector
 
     def makeIDFVector(self, documentList):
 
         outputVector = [0] * len(self.vectorKeywordIndex)
 
-        keyVector = list(self.vectorKeywordIndex.keys())
+        # keyVector = list(self.vectorKeywordIndex.keys())
         docNumber = len(documentList)  # should be 2048
 
-        for i in range(docNumber):
-            docTemp = self.parser.tokenise(documentList[i])
+        for doc in documentList:
+            docTemp = self.parser.tokenise(doc)
             docTemp = self.parser.removeStopWords(docTemp)
             uniqueDocTemp = util.removeDuplicates(docTemp)
 
             for key in uniqueDocTemp:
                 outputVector[self.vectorKeywordIndex[key]] += 1 # DF
 
-        for key in keyVector:
-            outputVector[self.vectorKeywordIndex[key]] = math.log(docNumber/outputVector[self.vectorKeywordIndex[key]]) # IDF
+        for i in range(len(outputVector)):
+            outputVector[i] = math.log(docNumber/outputVector[i]) # IDF
 
         return outputVector
 
@@ -95,22 +98,22 @@ class VectorSpaceModel:
 
         return outputVector
 
-    def buildSimpleQueryVector(self, termList):
+    def buildTFQueryVector(self, termList):
         """ convert query string into a TF vector """
-        query = self.makeSimpleVector(" ".join(termList))
+        query = self.makeTFVector(" ".join(termList))
         return query
 
     def buildTFIDFQueryVector(self, termList):
         """ convert query string into a TF-IDF vector """
-        TFQuery = self.buildSimpleQueryVector(termList)
+        TFQuery = self.buildTFQueryVector(termList)
         query = self.makeTFIDFVector(TFQuery)
         return query
 
     def searchTFWithCosine(self, searchList):
         """ search for documents that match based on a list of terms """
-        queryVector = self.buildSimpleQueryVector(searchList)
+        queryVector = self.buildTFQueryVector(searchList)
 
-        ratings = [util.cosine(queryVector, documentVector) for documentVector in self.documentVectors]
+        ratings = [util.cosine(queryVector, documentVector) for documentVector in self.TFVectors]
 
         return ratings
 
@@ -118,15 +121,15 @@ class VectorSpaceModel:
         """ search for documents that match based on a list of terms """
         queryVector = self.buildTFIDFQueryVector(searchList)
 
-        ratings = [util.cosine(queryVector, documentVector) for documentVector in self.TFIDFVector]
+        ratings = [util.cosine(queryVector, documentVector) for documentVector in self.TFIDFVectors]
 
         return ratings
 
     def searchTFWithEuclideanDist(self, searchList):
         """ search for documents that match based on a list of terms """
-        queryVector = self.buildSimpleQueryVector(searchList)
+        queryVector = self.buildTFQueryVector(searchList)
 
-        ratings = [util.EuclideanDist(queryVector, documentVector) for documentVector in self.documentVectors]
+        ratings = [util.EuclideanDist(queryVector, documentVector) for documentVector in self.TFVectors]
 
         return ratings
 
@@ -134,23 +137,21 @@ class VectorSpaceModel:
         """ search for documents that match based on a list of terms """
         queryVector = self.buildTFIDFQueryVector(searchList)
 
-        ratings = [util.EuclideanDist(queryVector, documentVector) for documentVector in self.TFIDFVector]
+        ratings = [util.EuclideanDist(queryVector, documentVector) for documentVector in self.TFIDFVectors]
 
         return ratings
 
     def searchRelevantFeedback(self, QueryFeedback):
         # first element is query, second element is feedback
 
-        query = self.buildSimpleQueryVector(QueryFeedback[0])
-        feedback = self.buildSimpleQueryVector(QueryFeedback[1])
+        query = self.buildTFIDFQueryVector(QueryFeedback[0])
+        feedback = self.buildTFIDFQueryVector(QueryFeedback[1])
 
-        TFNewQuery = [0]*len(query)
+        NewQuery = [0]*len(query)
 
         for i in range(len(query)):
-            TFNewQuery[i] = 1 * query[i] + 0.5 * feedback[i]
+            NewQuery[i] = 1 * query[i] + 0.5 * feedback[i]
 
-        newQuery = self.makeTFIDFVector(TFNewQuery)
-
-        ratings = [util.cosine(newQuery, documentVector) for documentVector in self.TFIDFVector]
+        ratings = [util.cosine(NewQuery, documentVector) for documentVector in self.TFIDFVectors]
 
         return ratings
