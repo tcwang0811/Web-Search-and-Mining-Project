@@ -28,7 +28,7 @@ def cosine(vector1, vector2):
 
 def EuclideanDist(query, document):
     Que = np.array(query)
-    Que = Que/3
+    Que = normalization(Que)
     Doc = np.array(document)
 
     output = norm(Doc-Que)
