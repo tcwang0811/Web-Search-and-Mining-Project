@@ -3,7 +3,7 @@ import nltk
 from VectorSpaceModel import VectorSpaceModel
 
 def SandP(VSList, NoList, n, isReverse):
-    print("DocID  ", "Score")
+    print("DocID ", "Score")
 
     output = []
 
@@ -56,32 +56,32 @@ def main():
     #######################################
     ## TF + Cosine ##
 
-    print("TF + Cosine:")
+    print("Term Frequency (TF) Weighting + Cosine Similarity:")
 
     SandP(VS.searchTFWithCosine(query), documentsNo, n_Print,True)
 
     print("\n")
     ## TF + Euclidean Distance ##
-    print("TF + Euclidean Distance:")
+    print("Term Frequency (TF) Weighting + Euclidean Distance:")
 
     SandP(VS.searchTFWithEuclideanDist(query), documentsNo, n_Print, False)
 
     print("\n")
     ## TF-IDF + Cosine ##
-    print("TF-IDF + Cosine:")
+    print("TF-IDF Weighting + Cosine Similarity:")
 
     FBVector = SandP(VS.searchTFIDFWithCosine(query), documentsNo, n_Print, True)
 
     print("\n")
     ## TF-IDF + Euclidean Distance ##
-    print("TF-IDF + Euclidean Distance:")
+    print("TF-IDF Weighting + Euclidean Distance:")
 
     SandP(VS.searchTFIDFWithEuclideanDist(query), documentsNo, n_Print, False)
 
     print("\n")
 
     ## Relevant Feedback ##
-    print("TF-IDF + Cosine + Relevant Feedback:")
+    print("TF-IDF Weighting + Cosine Similarity + Relevant Feedback:")
     FBNo = FBVector[0][0]
     FB = documents[documentsNo.index(FBNo)]
 
