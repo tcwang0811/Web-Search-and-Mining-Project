@@ -73,8 +73,7 @@ class VectorSpaceModel:
 
         outputVector = [0] * len(self.vectorKeywordIndex)
 
-        # keyVector = list(self.vectorKeywordIndex.keys())
-        docNumber = len(documentList)  # should be 2048
+        docNumber = len(documentList)
 
         for doc in documentList:
             docTemp = self.parser.tokenise(doc)
@@ -90,7 +89,6 @@ class VectorSpaceModel:
         return outputVector
 
     def makeTFIDFVector(self, TFVector):
-
         outputVector = [0] * len(TFVector)
 
         for i in range(len(TFVector)):
@@ -142,7 +140,7 @@ class VectorSpaceModel:
         return ratings
 
     def searchRelevantFeedback(self, QueryFeedback):
-        # first element is query, second element is feedback
+        # first element is query, second element is relevant feedback
 
         query = self.buildTFIDFQueryVector(QueryFeedback[0])
         feedback = self.buildTFIDFQueryVector(QueryFeedback[1])

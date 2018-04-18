@@ -3,6 +3,9 @@ import nltk
 from VectorSpaceModel import VectorSpaceModel
 
 def SandP(VSList, NoList, n, isReverse):
+    """
+    Sort files with their cosine or distance, and print out the document ID and score
+    """
     print("DocID ", "Score")
 
     output = []
@@ -18,6 +21,9 @@ def SandP(VSList, NoList, n, isReverse):
     return output
 
 def NandV(documentString):
+    """
+    Find the noun and verb with NLTK package 
+    """
     text = nltk.word_tokenize(documentString)
     temp = nltk.pos_tag(text)
 
@@ -47,11 +53,11 @@ def main():
             documentsNo.append(file)
             thisFile.close()
 
-    query = ["drill wood sharp"]
+    query = ["drill wood sharp"] # query
 
-    VS = VectorSpaceModel(documents)
+    VS = VectorSpaceModel(documents) # build model
 
-    n_Print = 5
+    n_Print = 5 # number of print
 
     #######################################
     ## TF + Cosine ##
@@ -82,6 +88,7 @@ def main():
 
     ## Relevant Feedback ##
     print("TF-IDF Weighting + Cosine Similarity + Relevant Feedback:")
+    # first of TF-IDF + Cosine
     FBNo = FBVector[0][0]
     FB = documents[documentsNo.index(FBNo)]
 
