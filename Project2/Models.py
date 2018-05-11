@@ -6,12 +6,14 @@ class Model:
     index = {}
     lenDict = {}
     totalTermAndDoc = []
+    ID = []
 
-    def __init__(self, inputData, lengthDict, termAndDoc, uniqueT):
+    def __init__(self, inputData, lengthDict, termAndDoc, uniqueT, ID_mapping):
         self.index = inputData
         self.lenDict = lengthDict
         self.totalTermAndDoc = termAndDoc
         self.uniqueTerm = uniqueT
+        self.ID = ID_mapping
 
     def VectorSpace(self, query):
         # Vector space model
@@ -99,3 +101,18 @@ class Model:
         listLMJM.sort(key=lambda x: x[1], reverse=True)
 
         return listLMJM
+
+    def printVectorSpace(self, query):
+        for subQuery in range(len(query)):
+            VSList = self.VectorSpace(query[subQuery])
+
+            if len(VSList) < 1000:
+                printIndex = len(VSList)
+            else:
+                printIndex = 1000
+
+            for doc in range(1, printIndex + 1):
+                print("%d Q0 %s %d %f Exp" % (subQuery+1, self.ID[int(VSList[doc - 1][0]) - 1][1], doc, VSList[doc - 1][1]))
+
+            print("\n")
+
