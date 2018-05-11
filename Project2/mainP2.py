@@ -2,15 +2,20 @@ from Models import Model
 
 
 def main():
+
+    # changeable
+    uniqueTerm = 27439  # 不在檔案中
+    pathData = "data/toTest.txt"
+    pathID = "data/ID/ID_toTest.txt"
+
     # read data
     inputData = {}
     lenDict = {}
     totalTermAndDoc = []
-    uniqueTerm = 27439  # 不在檔案中
 
     isHead = 1
     nowTerm = ""
-    with open("data/toTest.txt") as file:
+    with open(pathData) as file:
         for line in file:
             if isHead == 1:
                 totalTermAndDoc = [int(i) for i in line[:-1].split(" ")]
@@ -32,7 +37,7 @@ def main():
 
     # read ID map
     ID_mapping = []
-    with open("data/ID/ID_toTest.txt") as file:
+    with open(pathID) as file:
         for line in file:
             temp = line[:-1].split(" ")
             ID_mapping.append(temp)
@@ -42,8 +47,12 @@ def main():
 
     # declare model
     MD = Model(inputData, lenDict, totalTermAndDoc, uniqueTerm, ID_mapping)
+    print("VectorSpace\n")
     MD.printVectorSpace(query)
-
+    print("Laplace\n")
+    MD.printLanguageModelLaplace(query)
+    print("JM\n")
+    MD.printLanguageModelJM(query)
 
 if __name__ == '__main__':
     main()
