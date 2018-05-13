@@ -12,11 +12,16 @@ def main():
     # declare model
     MD = Model(pathData=pathData, pathID=pathID, pathQuery=pathQuery, uniqueT=uniqueTerm, isStemming=isStemming)
 
-    print("VectorSpace\n")
+
+    print("VectorSpace")
     MD.printVectorSpace()
-    print("Laplace\n")
+
+    print("")
+    print("Laplace")
     MD.printLanguageModelLaplace()
-    print("JM\n")
+
+    print("")
+    print("JM")
     MD.printLanguageModelJM()
 
 

@@ -13,6 +13,14 @@ class Model:
     # self.__stemmer = stemmer
 
     def __init__(self, pathData, pathID, pathQuery, uniqueT, isStemming):
+        """
+
+        :param pathData: string of pathData
+        :param pathID: string of pathID
+        :param pathQuery: string of pathQuery
+        :param uniqueT: integer of unique term
+        :param isStemming: True if using stemming, False if not using stemming
+        """
         self.__uniqueTerm = uniqueT
         self.__buildData(pathData)
         self.__buildID(pathID)
@@ -32,18 +40,25 @@ class Model:
         with open(pathData) as file:
             for line in file:
                 if isHead == 1:
+                    # Top of Data
+                    # Add total number of term and number of document
                     self.__totalTermAndDoc = [int(i) for i in line[:-1].split(" ")]
                     isHead = 0
                 else:
                     if line[0] != "\t":
+                        # Beginning of term
                         temp = line[:-1].split(" ")
+                        # Add term to key and 0 position is total appear time and appear document
                         self.__index[temp[0]] = [[int(i) for i in temp[1:]]]
                         nowTerm = temp[0]
                     else:
+                        # not beginning of term
                         temp = line[1:-1].split(" ")
+                        # Add doc ID and appear time
                         toInput = [temp[0], int(temp[1])]  # 0: doc ID, 1: appear times
                         self.__index[nowTerm].append(toInput)
 
+                        # Add doc length
                         if toInput[0] not in self.__lenDict:
                             self.__lenDict[toInput[0]] = int(toInput[1])
                         else:
@@ -54,11 +69,17 @@ class Model:
         self.__ID = []
         with open(pathID) as file:
             for line in file:
+                # Add internal ID and external ID to self.__ID
                 temp = line[:-1].split(" ")
                 self.__ID.append(temp)
 
     @staticmethod
     def __clean(queryString):
+        """
+
+        :param queryString: a query string
+        :return: a list of cleaned query
+        """
         queryString = queryString.replace(",", "")
         # queryString = queryString.replace("\s+", " ")
         queryString = queryString.lower()
@@ -67,41 +88,57 @@ class Model:
         return output
 
     def __stem(self, queryWordList):
+        """
+
+        :param queryWordList: a list of cleaned query
+        :return: a list of stemmed query
+        """
         return [self.__stemmer.stem(word, 0, len(word) - 1) for word in queryWordList]
 
     def __buildQuery(self, pathQuery, isStemming):
         self.__query = []
         temp = [0] * 2
+
         with open(pathQuery) as file:
             for line in file:
                 if line[:5] == "<num>":
+                    # update query number
                     first = line.find(":") + 2
                     temp[0] = int(line[first:first + 3])
                 elif line[:7] == "<title>":
+                    # update query
                     first = line.find(">") + 2
                     if line.find(" \n") == -1:
                         last = -1
                     else:
                         last = -2
                     temp[1] = line[first:last]
+                    # Add query number and query to self.__query
                     self.__query.append(temp.copy())
 
+        # clean and stem
         for i in range(len(self.__query)):
             self.__query[i][1] = self.__clean(self.__query[i][1])
             if isStemming:
                 self.__query[i][1] = self.__stem(self.__query[i][1])
 
     def __VectorSpace(self, query):
+        """
+
+        :param query: a list of query term
+        :return: a list of internal Doc ID and score which is sorted from high to low
+        """
         # Vector space model
         outputVS = {}
         listVS = []
 
+        # Suppose every term in query appears only once
         template = [0] * len(query)
         averageL = self.__totalTermAndDoc[0] / self.__totalTermAndDoc[1]
 
-        # suppose every term in query appears only once
         queryTFIDF = template.copy()
 
+        # Calculate TF-IDF of every term
         for i in range(len(query)):
             temp = self.__index[query[i]]
             nKey = temp[0][1] + 1
@@ -116,6 +153,7 @@ class Model:
             queryTFIDF[i] = 1 / (1 + 0.5 + 1.5 * len(query) / averageL) * math.log(
                 self.__totalTermAndDoc[1] / (nKey - 1))
 
+        # to list and sort
         for key, value in outputVS.items():
             temp = [key, np.dot(value, queryTFIDF)]
             listVS.append(temp)
@@ -125,9 +163,15 @@ class Model:
         return listVS
 
     def __LanguageModelLaplace(self, query):
+        """
+
+        :param query: a list of query term
+        :return: a list of internal Doc ID and score which is sorted from high to low
+        """
         outputLMLaplace = {}
         listLMLaplace = []
 
+        # Calculate every probability of document with Laplace smoothing
         for i in range(len(query)):
             temp = self.__index[query[i]]
             nKey = temp[0][1] + 1
@@ -138,6 +182,7 @@ class Model:
                     outputLMLaplace[docID] = 0
                 outputLMLaplace[docID] += math.log((tfOfDoc + 1) / (self.__lenDict[docID] + self.__uniqueTerm))
 
+        # to list and sort
         for key, value in outputLMLaplace.items():
             temp = [key, value]
             listLMLaplace.append(temp)
@@ -147,15 +192,21 @@ class Model:
         return listLMLaplace
 
     def __LanguageModelJM(self, query):
+        """
+
+        :param query: a list of query term
+        :return: a list of internal Doc ID and score which is sorted from high to low
+        """
         outputLMJM = {}
         listLMJM = []
 
-        # Let template be the P(|C)
+        # Let template be the probability of corpus
         template = [0] * len(query)
 
         for i in range(len(query)):
             template[i] = (self.__index[query[i]][0][0] / self.__totalTermAndDoc[0]) * 0.8
 
+        # Calculate every probability of document and add to its term
         for i in range(len(query)):
             temp = self.__index[query[i]]
             nKey = temp[0][1] + 1
@@ -166,11 +217,13 @@ class Model:
                     outputLMJM[docID] = template.copy()
                 outputLMJM[docID][i] += (tfOfDoc / self.__lenDict[docID]) * 0.2
 
+        # Take natural log and sum
         for key in outputLMJM.keys():
             for j in range(len(query)):
                 outputLMJM[key][j] = math.log(outputLMJM[key][j])
             outputLMJM[key] = sum(outputLMJM[key])
 
+        # to list and sort
         for key, value in outputLMJM.items():
             temp = [key, value]
             listLMJM.append(temp)
@@ -181,42 +234,45 @@ class Model:
 
     def printVectorSpace(self):
         for subQuery in range(len(self.__query)):
+            # for every query, calculate vector space rank
             VSList = self.__VectorSpace(self.__query[subQuery][1])
 
+            # determine whether length of List longer than 1000
             if len(VSList) < 1000:
                     printIndex = len(VSList)
             else:
                 printIndex = 1000
 
+            # print outcome
             for doc in range(1, printIndex + 1):
                 print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(VSList[doc - 1][0]) - 1][1], doc, VSList[doc - 1][1]))
 
-            print("\n")
-
     def printLanguageModelLaplace(self):
         for subQuery in range(len(self.__query)):
+            # for every query, calculate language model with Laplace smoothing rank
             LaplaceList = self.__LanguageModelLaplace(self.__query[subQuery][1])
 
+            # determine whether length of List longer than 1000
             if len(LaplaceList) < 1000:
                 printIndex = len(LaplaceList)
             else:
                 printIndex = 1000
 
+            # print outcome
             for doc in range(1, printIndex + 1):
                 print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(LaplaceList[doc - 1][0]) - 1][1], doc, LaplaceList[doc - 1][1]))
 
-            print("\n")
-
     def printLanguageModelJM(self):
         for subQuery in range(len(self.__query)):
+            # for every query, calculate language model with JM smoothing rank
             JMList = self.__LanguageModelJM(self.__query[subQuery][1])
 
+            # determine whether length of List longer than 1000
             if len(JMList) < 1000:
                 printIndex = len(JMList)
             else:
                 printIndex = 1000
 
+            # print outcome
             for doc in range(1, printIndex + 1):
                 print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(JMList[doc - 1][0]) - 1][1], doc, JMList[doc - 1][1]))
-
-            print("\n")
