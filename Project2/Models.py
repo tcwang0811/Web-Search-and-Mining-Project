@@ -178,9 +178,14 @@ class Model:
             for j in range(1, nKey):
                 docID = temp[j][0]
                 tfOfDoc = temp[j][1]
+                docLength = self.__lenDict[docID]
                 if docID not in outputLMLaplace:
-                    outputLMLaplace[docID] = 0
-                outputLMLaplace[docID] += math.log((tfOfDoc + 1) / (self.__lenDict[docID] + self.__uniqueTerm))
+                    outputLMLaplace[docID] = [math.log(1/(docLength + self.__uniqueTerm))] * len(query)
+                outputLMLaplace[docID][i] = math.log((tfOfDoc + 1) / (docLength + self.__uniqueTerm))
+
+        # sum
+        for key in outputLMLaplace.keys():
+            outputLMLaplace[key]=sum(outputLMLaplace[key])
 
         # to list and sort
         for key, value in outputLMLaplace.items():
