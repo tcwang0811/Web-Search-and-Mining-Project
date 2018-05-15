@@ -4,13 +4,13 @@ from PorterStemmer import PorterStemmer
 
 
 class Model:
-    # self.__index = index to identify term in list
-    # self.__data = store data
-    # self.__lenDict = length of every document
+    # self.__index = file index (only term appears in query in index)
+    # self.__lenDict = length of every document (all)
     # self.__totalTermAndDoc = total number of term and number of document
     # self.__uniqueTerm = number of unique term
     # self.__ID = internal and external ID mapping
     # self.__query = query number and content
+    # self.__querySet = a set to test if a term in the query
     # self.__stemmer = stemmer
 
     def __init__(self, pathData, pathID, pathQuery, uniqueT, isStemming):
@@ -22,24 +22,24 @@ class Model:
         :param uniqueT: integer of unique term
         :param isStemming: True if using stemming, False if not using stemming
         """
-        self.__uniqueTerm = uniqueT
-        self.__buildData(pathData)
         self.__buildID(pathID)
         if isStemming:
             self.__stemmer = PorterStemmer()
         self.__buildQuery(pathQuery, isStemming)
+        self.__uniqueTerm = uniqueT
+
+        self.__buildData(pathData)
 
 
     def __buildData(self, pathData):
         # read data
         self.__index = {}
-        self.__data = []
         self.__lenDict = {}
         self.__totalTermAndDoc = []
 
-
-        docIndex = -1
         isHead = 1
+        isInSet = 0
+        nowTerm = ""
         with open(pathData, encoding = 'utf8') as file:
             for line in file:
                 if isHead == 1:
@@ -51,16 +51,23 @@ class Model:
                     if line[0] != "\t":
                         # Beginning of term
                         temp = line[:-1].split(" ")
-                        # Add term to key and 0 position is total appear time and appear document
-                        docIndex += 1
-                        self.__index[temp[0]] = docIndex
-                        self.__data.append([int(i) for i in temp[1:]])
+                        # is term appear in query?
+                        if temp[0] in self.__querySet:
+                            # Add term to key and 0 position is total appear time and appear document
+                            self.__index[temp[0]] = [[int(i) for i in temp[1:]]]
+                            nowTerm = temp[0]
+                            isInSet = 1
+                        else:
+                            isInSet = 0
                     else:
                         # not beginning of term
                         temp = line[1:-1].split(" ")
-                        # Add doc ID and appear time
                         toInput = [temp[0], int(temp[1])]  # 0: doc ID, 1: appear times
-                        self.__data[docIndex].append(toInput)
+
+                        # is term appear in query?
+                        if isInSet == 1:
+                            # Add doc ID and appear time
+                            self.__index[nowTerm].append(toInput)
 
                         # Add doc length
                         if toInput[0] not in self.__lenDict:
@@ -101,6 +108,7 @@ class Model:
 
     def __buildQuery(self, pathQuery, isStemming):
         self.__query = []
+        self.__querySet = []
         temp = [0] * 2
 
         with open(pathQuery, encoding = 'utf8') as file:
@@ -125,6 +133,11 @@ class Model:
             self.__query[i][1] = self.__clean(self.__query[i][1])
             if isStemming:
                 self.__query[i][1] = self.__stem(self.__query[i][1])
+            # add every query term to set
+            self.__querySet.extend(self.__query[i][1])
+
+        # transfer to set
+        self.__querySet = set(self.__querySet)
 
     def __VectorSpace(self, query):
         """
