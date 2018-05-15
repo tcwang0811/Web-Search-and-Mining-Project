@@ -4,7 +4,8 @@ from PorterStemmer import PorterStemmer
 
 
 class Model:
-    # self.__index = file index
+    # self.__index = index to identify term in list
+    # self.__data = store data
     # self.__lenDict = length of every document
     # self.__totalTermAndDoc = total number of term and number of document
     # self.__uniqueTerm = number of unique term
@@ -32,12 +33,14 @@ class Model:
     def __buildData(self, pathData):
         # read data
         self.__index = {}
+        self.__data = []
         self.__lenDict = {}
         self.__totalTermAndDoc = []
 
+
+        docIndex = -1
         isHead = 1
-        nowTerm = ""
-        with open(pathData) as file:
+        with open(pathData, encoding = 'utf8') as file:
             for line in file:
                 if isHead == 1:
                     # Top of Data
@@ -49,14 +52,15 @@ class Model:
                         # Beginning of term
                         temp = line[:-1].split(" ")
                         # Add term to key and 0 position is total appear time and appear document
-                        self.__index[temp[0]] = [[int(i) for i in temp[1:]]]
-                        nowTerm = temp[0]
+                        docIndex += 1
+                        self.__index[temp[0]] = docIndex
+                        self.__data.append([int(i) for i in temp[1:]])
                     else:
                         # not beginning of term
                         temp = line[1:-1].split(" ")
                         # Add doc ID and appear time
                         toInput = [temp[0], int(temp[1])]  # 0: doc ID, 1: appear times
-                        self.__index[nowTerm].append(toInput)
+                        self.__data[docIndex].append(toInput)
 
                         # Add doc length
                         if toInput[0] not in self.__lenDict:
@@ -67,7 +71,7 @@ class Model:
     def __buildID(self, pathID):
         # read ID map
         self.__ID = []
-        with open(pathID) as file:
+        with open(pathID, encoding = 'utf8') as file:
             for line in file:
                 # Add internal ID and external ID to self.__ID
                 temp = line[:-1].split(" ")
@@ -99,7 +103,7 @@ class Model:
         self.__query = []
         temp = [0] * 2
 
-        with open(pathQuery) as file:
+        with open(pathQuery, encoding = 'utf8') as file:
             for line in file:
                 if line[:5] == "<num>":
                     # update query number
@@ -237,7 +241,7 @@ class Model:
 
         return listLMJM
 
-    def printVectorSpace(self):
+    def printVectorSpace(self, fileName):
         for subQuery in range(len(self.__query)):
             # for every query, calculate vector space rank
             VSList = self.__VectorSpace(self.__query[subQuery][1])
@@ -250,9 +254,9 @@ class Model:
 
             # print outcome
             for doc in range(1, printIndex + 1):
-                print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(VSList[doc - 1][0]) - 1][1], doc, VSList[doc - 1][1]))
+                print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(VSList[doc - 1][0]) - 1][1], doc, VSList[doc - 1][1]), file=fileName)
 
-    def printLanguageModelLaplace(self):
+    def printLanguageModelLaplace(self, fileName):
         for subQuery in range(len(self.__query)):
             # for every query, calculate language model with Laplace smoothing rank
             LaplaceList = self.__LanguageModelLaplace(self.__query[subQuery][1])
@@ -265,9 +269,9 @@ class Model:
 
             # print outcome
             for doc in range(1, printIndex + 1):
-                print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(LaplaceList[doc - 1][0]) - 1][1], doc, LaplaceList[doc - 1][1]))
+                print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(LaplaceList[doc - 1][0]) - 1][1], doc, LaplaceList[doc - 1][1]), file=fileName)
 
-    def printLanguageModelJM(self):
+    def printLanguageModelJM(self, fileName):
         for subQuery in range(len(self.__query)):
             # for every query, calculate language model with JM smoothing rank
             JMList = self.__LanguageModelJM(self.__query[subQuery][1])
@@ -280,4 +284,4 @@ class Model:
 
             # print outcome
             for doc in range(1, printIndex + 1):
-                print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(JMList[doc - 1][0]) - 1][1], doc, JMList[doc - 1][1]))
+                print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(JMList[doc - 1][0]) - 1][1], doc, JMList[doc - 1][1]), file=fileName)
