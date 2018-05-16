@@ -300,3 +300,98 @@ class Model:
             # print outcome
             for doc in range(1, printIndex + 1):
                 print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(JMList[doc - 1][0]) - 1][1], doc, JMList[doc - 1][1]), file=fileName)
+
+    ## try cosine ##
+    def __VectorSpaceCosine(self, query, normSquareDict):
+        """
+
+        :param query: a list of query term
+        :return: a list of internal Doc ID and score which is sorted from high to low
+        """
+        # Vector space model
+        outputVS = {}
+        listVS = []
+
+        # Suppose every term in query appears only once
+        template = [0] * len(query)
+        averageL = self.__totalTermAndDoc[0] / self.__totalTermAndDoc[1]
+
+        queryTFIDF = template.copy()
+
+        # Calculate TF-IDF of every term
+        for i in range(len(query)):
+            temp = self.__index[query[i]]
+            nKey = temp[0][1] + 1
+            for j in range(1, nKey):
+                docID = temp[j][0]
+                tfOfDoc = temp[j][1]
+                if docID not in outputVS:
+                    outputVS[docID] = template.copy()
+                OkapiTF = tfOfDoc / (tfOfDoc + 0.5 + 1.5 * self.__lenDict[docID] / averageL)
+                outputVS[docID][i] = OkapiTF * math.log(self.__totalTermAndDoc[1] / (nKey - 1))
+
+            queryTFIDF[i] = 1 / (1 + 0.5 + 1.5 * len(query) / averageL) * math.log(
+                self.__totalTermAndDoc[1] / (nKey - 1))
+
+        # to list and sort
+        for key, value in outputVS.items():
+            docNorm = math.sqrt(normSquareDict[key])
+            score = np.dot(value, queryTFIDF)/(np.linalg.norm(queryTFIDF) * docNorm)
+
+            temp = [key, score]
+            listVS.append(temp)
+
+        listVS.sort(key=lambda x: x[1], reverse=True)
+
+        return listVS
+
+    def __buildNorm(self, pathData):
+        normSquareDict = {}
+        averageL = self.__totalTermAndDoc[0] / self.__totalTermAndDoc[1]
+
+        isHead = 1
+        nDoc = 0
+        with open(pathData, encoding='utf8') as file:
+            for line in file:
+                if isHead == 1:
+                    # Top of Data
+                    isHead = 0
+                else:
+                    if line[0] != "\t":
+                        # Beginning of term
+                        temp = line[:-1].split(" ")
+                        nDoc = int(temp[2])
+                    else:
+                        # not beginning of term
+                        temp = line[1:-1].split(" ")
+                        docID = temp[0]
+                        tfOfDoc = int(temp[1])
+
+                        OkapiTF = tfOfDoc / (tfOfDoc + 0.5 + 1.5 * self.__lenDict[docID] / averageL)
+                        TFIDF = OkapiTF * math.log(self.__totalTermAndDoc[1] / nDoc)
+
+                        # Add doc length
+                        if docID not in normSquareDict:
+                            normSquareDict[docID] = TFIDF ** 2
+                        else:
+                            normSquareDict[docID] += TFIDF ** 2
+
+        return normSquareDict
+
+    def printVectorSpaceCosine(self, fileName, pathData):
+
+        normSquareDict = self.__buildNorm(pathData)
+
+        for subQuery in range(len(self.__query)):
+            # for every query, calculate vector space rank
+            VSList = self.__VectorSpaceCosine(self.__query[subQuery][1], normSquareDict)
+
+            # determine whether length of List longer than 1000
+            if len(VSList) < 1000:
+                    printIndex = len(VSList)
+            else:
+                printIndex = 1000
+
+            # print outcome
+            for doc in range(1, printIndex + 1):
+                print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(VSList[doc - 1][0]) - 1][1], doc, VSList[doc - 1][1]), file=fileName)
