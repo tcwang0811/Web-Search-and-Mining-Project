@@ -93,6 +93,8 @@ class Model:
         """
         queryString = queryString.replace(",", "")
         # queryString = queryString.replace("\s+", " ")
+        queryString = queryString.replace("'", "")
+        queryString = queryString.replace(".", "")
         queryString = queryString.lower()
         output = queryString.split(" ")
 
