@@ -18,7 +18,7 @@ def main():
     print("VectorSpace Start")
 
     VSFile = open("output/Porter/Porter_VSFile.txt","wt")
-    MD.printVectorSpace(VSFile)
+    MD.printVectorSpace(VSFile,k1=2,b=0.75)
     VSFile.close()
 
     print("VectorSpace End")
@@ -36,7 +36,7 @@ def main():
     print("JM Start")
 
     JMFile = open("output/Porter/Porter_JMFile.txt", "wt")
-    MD.printLanguageModelJM(JMFile)
+    MD.printLanguageModelJM(JMFile, 0.2)
     JMFile.close()
 
     print("JM End")

@@ -141,7 +141,7 @@ class Model:
         # transfer to set
         self.__querySet = set(self.__querySet)
 
-    def __VectorSpace(self, query):
+    def __VectorSpace(self, query, k1, b):
         """
 
         :param query: a list of query term
@@ -166,10 +166,10 @@ class Model:
                 tfOfDoc = temp[j][1]
                 if docID not in outputVS:
                     outputVS[docID] = template.copy()
-                OkapiTF = tfOfDoc / (tfOfDoc + 0.5 + 1.5 * self.__lenDict[docID] / averageL)
+                OkapiTF = (k1 + 1) * tfOfDoc / (tfOfDoc + k1 * ((1 - b) + b * self.__lenDict[docID] / averageL))
                 outputVS[docID][i] = OkapiTF * math.log(self.__totalTermAndDoc[1] / (nKey - 1))
 
-            queryTFIDF[i] = 1 / (1 + 0.5 + 1.5 * len(query) / averageL) * math.log(
+            queryTFIDF[i] = (k1 + 1) / (1 + k1 * ((1 - b) + b * len(query) / averageL)) * math.log(
                 self.__totalTermAndDoc[1] / (nKey - 1))
 
         # to list and sort
@@ -215,7 +215,7 @@ class Model:
 
         return listLMLaplace
 
-    def __LanguageModelJM(self, query):
+    def __LanguageModelJM(self, query, lambdaDoc):
         """
 
         :param query: a list of query term
@@ -228,7 +228,7 @@ class Model:
         template = [0] * len(query)
 
         for i in range(len(query)):
-            template[i] = (self.__index[query[i]][0][0] / self.__totalTermAndDoc[0]) * 0.8
+            template[i] = (self.__index[query[i]][0][0] / self.__totalTermAndDoc[0]) * (1-lambdaDoc)
 
         # Calculate every probability of document and add to its term
         for i in range(len(query)):
@@ -239,7 +239,7 @@ class Model:
                 tfOfDoc = temp[j][1]
                 if docID not in outputLMJM:
                     outputLMJM[docID] = template.copy()
-                outputLMJM[docID][i] += (tfOfDoc / self.__lenDict[docID]) * 0.2
+                outputLMJM[docID][i] += (tfOfDoc / self.__lenDict[docID]) * lambdaDoc
 
         # Take natural log and sum
         for key in outputLMJM.keys():
@@ -256,10 +256,10 @@ class Model:
 
         return listLMJM
 
-    def printVectorSpace(self, fileName):
+    def printVectorSpace(self, fileName, k1, b):
         for subQuery in range(len(self.__query)):
             # for every query, calculate vector space rank
-            VSList = self.__VectorSpace(self.__query[subQuery][1])
+            VSList = self.__VectorSpace(self.__query[subQuery][1], k1, b)
 
             # determine whether length of List longer than 1000
             if len(VSList) < 1000:
@@ -286,10 +286,10 @@ class Model:
             for doc in range(1, printIndex + 1):
                 print("%d Q0 %s %d %f Exp" % (self.__query[subQuery][0], self.__ID[int(LaplaceList[doc - 1][0]) - 1][1], doc, LaplaceList[doc - 1][1]), file=fileName)
 
-    def printLanguageModelJM(self, fileName):
+    def printLanguageModelJM(self, fileName, lambdaDoc):
         for subQuery in range(len(self.__query)):
             # for every query, calculate language model with JM smoothing rank
-            JMList = self.__LanguageModelJM(self.__query[subQuery][1])
+            JMList = self.__LanguageModelJM(self.__query[subQuery][1], lambdaDoc)
 
             # determine whether length of List longer than 1000
             if len(JMList) < 1000:
