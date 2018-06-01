@@ -1,6 +1,7 @@
 .idea/
 __pycache__/
 .Rhistory
+.ipynb_checkpoints/
 
 documents/
 data/

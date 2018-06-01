@@ -13,8 +13,8 @@ set.seed(0)
 
 #---------------------------
 cat("Loading data...\n")
-tr <- read_csv("../input/train.csv") 
-te <- read_csv("../input/test.csv")
+tr <- read_csv("data/train.csv") 
+te <- read_csv("data/test.csv")
 
 #---------------------------
 cat("Preprocessing...\n")
